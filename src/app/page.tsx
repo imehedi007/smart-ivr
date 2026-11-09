@@ -46,12 +46,12 @@ type Route =
 
 export default function SmartIvrApp() {
   const [language, setLanguage] = useState<Language>('en');
-  const [currentRoute, setCurrentRoute] = useState<Route>('main-menu');
+  const [currentRoute, setCurrentRoute] = useState<Route>('landing');
   const [routeHistory, setRouteHistory] = useState<Route[]>([]);
   const [rfqInitialProductId, setRfqInitialProductId] = useState<string>('fire-insurance');
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [callDuration, setCallDuration] = useState(194); // Start at simulated ~3 minutes
-  const [isCallActive, setIsCallActive] = useState(true);
+  const [callDuration, setCallDuration] = useState(0);
+  const [isCallActive, setIsCallActive] = useState(false);
 
   // Audio Voice State - Muted by default (user can unmute on demand)
   const [isMuted, setIsMuted] = useState(true);
