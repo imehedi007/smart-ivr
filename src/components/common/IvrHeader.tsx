@@ -13,6 +13,7 @@ interface IvrHeaderProps {
   onOpenSearch: () => void;
   onOpenStatus: () => void;
   onOpenDialpad: () => void;
+  onOpenHotlineModal?: () => void;
   onGoHome: () => void;
   onGoBack: () => void;
   canGoBack: boolean;
@@ -28,6 +29,7 @@ export const IvrHeader: React.FC<IvrHeaderProps> = ({
   onOpenSearch,
   onOpenStatus,
   onOpenDialpad,
+  onOpenHotlineModal,
   onGoHome,
   onGoBack,
   canGoBack,
@@ -129,11 +131,12 @@ export const IvrHeader: React.FC<IvrHeaderProps> = ({
             <Search className="w-3.5 h-3.5" />
           </button>
 
-          {/* Keypad Dialpad Trigger */}
+          {/* Hotline 16457 Call Modal Trigger */}
           <button
-            onClick={onOpenDialpad}
-            className="w-7 h-7 rounded-full flex items-center justify-center text-blue-100 hover:text-amber-300 hover:bg-white/10 transition active:scale-95"
-            title="Keypad"
+            onClick={onOpenHotlineModal || onOpenDialpad}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-blue-100 hover:text-amber-300 hover:bg-white/10 transition active:scale-95 cursor-pointer"
+            title={language === 'en' ? 'Call Hotline 16457' : 'হটলাইন ১৬৪৫৭ এ কল করুন'}
+            aria-label="Call Hotline 16457"
           >
             <PhoneCall className="w-3.5 h-3.5" />
           </button>

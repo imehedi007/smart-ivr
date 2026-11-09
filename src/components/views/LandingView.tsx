@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { GdicLogo } from '../common/GdicLogo';
-import { PhoneCall, ArrowRight, Sparkles, Moon, Sun } from 'lucide-react';
+import { PhoneCall, ArrowRight, Sparkles, Moon, Sun, Info } from 'lucide-react';
 import { Language } from '../../types/ivr';
 import { playSuccessChime } from '../../lib/audio';
 
@@ -75,12 +75,27 @@ export const LandingView: React.FC<LandingViewProps> = ({
           {/* বাংলা Button */}
           <button
             onClick={() => handleStart('bn')}
-            className="w-full h-13 rounded-2xl bg-white dark:bg-[#0f1a30] hover:bg-blue-50/50 dark:hover:bg-[#162a4d] border-2 border-slate-200 dark:border-blue-900/60 hover:border-[#F59E0B] text-slate-900 dark:text-white font-black text-base shadow-sm hover:shadow-md transition-all active:scale-98 flex items-center justify-center px-5 group"
+            className="w-full h-13 rounded-2xl bg-white dark:bg-[#0f1a30] hover:bg-blue-50/50 dark:hover:bg-[#162a4d] border-2 border-slate-200 dark:border-blue-900/60 hover:border-[#F59E0B] text-slate-900 dark:text-white font-black text-base shadow-sm hover:shadow-md transition-all active:scale-98 flex items-center justify-center px-5 group cursor-pointer"
           >
             <span className="text-slate-900 dark:text-white group-hover:text-[#F59E0B] transition-colors">
               বাংলা
             </span>
           </button>
+        </div>
+
+        {/* Demo Concept Card matching reference design with subtle red gradient */}
+        <div className="w-full max-w-[340px] mt-6 p-4 rounded-2xl bg-gradient-to-r from-rose-50/90 via-white to-red-50/70 dark:from-rose-950/40 dark:via-[#0c1a33] dark:to-rose-950/30 border border-rose-200/80 dark:border-rose-900/50 shadow-[0_4px_20px_rgba(244,63,94,0.06)] flex items-center gap-3.5 text-left">
+          <div className="w-11 h-11 rounded-full bg-gradient-to-br from-rose-100 to-red-100 dark:from-rose-950 dark:to-red-900/60 flex items-center justify-center text-rose-600 dark:text-rose-400 flex-shrink-0 border border-rose-200/70 dark:border-rose-800/50 shadow-2xs">
+            <Info className="w-5 h-5 stroke-[2.4]" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-[13.5px] font-black text-rose-950 dark:text-rose-100 tracking-tight leading-tight">
+              Demo Concept
+            </h4>
+            <p className="text-[11.5px] text-slate-600 dark:text-slate-300 font-normal leading-snug mt-0.5">
+              This Smart IVR is for demonstration and illustrative purposes only.
+            </p>
+          </div>
         </div>
       </div>
 

@@ -1,14 +1,14 @@
 'use client';
 
 import React from 'react';
-import { LayoutGrid, ArrowLeft, Volume2, Home, Power, MessageSquareText } from 'lucide-react';
+import { Volume2, VolumeX, Home, LogOut, MessageSquareText } from 'lucide-react';
+import { Language } from '../../types/ivr';
 
 interface IvrBottomNavProps {
-  canGoBack: boolean;
-  onGoBack: () => void;
+  language: Language;
   onGoHome: () => void;
-  onOpenDialpad: () => void;
   isAudioPlaying: boolean;
+  isMuted?: boolean;
   onToggleAudio: () => void;
   onEndCall: () => void;
   onOpenLiveChat: () => void;
@@ -16,109 +16,123 @@ interface IvrBottomNavProps {
 }
 
 export const IvrBottomNav: React.FC<IvrBottomNavProps> = ({
-  canGoBack,
-  onGoBack,
+  language,
   onGoHome,
-  onOpenDialpad,
   isAudioPlaying,
+  isMuted = false,
   onToggleAudio,
   onEndCall,
   onOpenLiveChat,
   currentRoute
 }) => {
+  const isHomeActive = currentRoute === 'main-menu';
+  const isVoiceActive = !isMuted;
+
   return (
     <div className="w-full relative z-30 select-none flex-shrink-0">
       {/* Floating Action Button for Live Chat */}
-      <div className="absolute -top-12 right-3 z-40">
+      <div className="absolute -top-13 right-3.5 z-40">
         <button
           onClick={onOpenLiveChat}
-          className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#16325B] to-[#1E3A8A] border-2 border-amber-400 text-amber-300 shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200 active:scale-95 group focus:outline-none"
+          className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#16325B] to-[#1E3A8A] border-2 border-amber-400 text-amber-300 shadow-xl hover:shadow-2xl flex items-center justify-center transition-all duration-200 active:scale-95 group focus:outline-none cursor-pointer"
           aria-label="Live Chat"
           title="Green Delta Live Support"
         >
           <MessageSquareText className="w-5 h-5 transition-transform group-hover:scale-110" />
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900" />
+          <span className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 shadow-xs" />
         </button>
       </div>
 
-      {/* Main Bottom Navigation Bar */}
-      <nav aria-label="Bottom Navigation" className="w-full bg-white dark:bg-[#0c1a33] border-t border-slate-200/90 dark:border-blue-900/40 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] px-2 pt-1 pb-1">
-        <div className="flex items-center justify-between h-12 max-w-md mx-auto">
-          {/* Keypad/Menu Button with Blue & Yellow Styling */}
-          <div className="relative">
-            <button
-              onClick={onOpenDialpad}
-              className="relative px-3.5 py-1.5 flex items-center justify-center text-white bg-[#16325B] hover:bg-[#1f4277] border-b-2 border-amber-400 rounded-r-xl rounded-l-md transition active:scale-95 shadow-sm group"
-              title="Open Keypad"
-            >
-              <LayoutGrid className="w-4 h-4 text-amber-300 transition-transform group-hover:rotate-12" />
-            </button>
-          </div>
-
-          {/* Back Arrow Button */}
-          <button
-            onClick={onGoBack}
-            disabled={!canGoBack}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition active:scale-95 ${
-              canGoBack
-                ? 'text-[#16325B] dark:text-blue-200 hover:bg-blue-50 dark:hover:bg-blue-950/40'
-                : 'text-slate-300 dark:text-slate-700 cursor-not-allowed'
-            }`}
-            title="Go Back"
-            aria-label="Go Back"
-          >
-            <ArrowLeft className="w-5 h-5 stroke-[2.2]" />
-          </button>
-
-          {/* Audio Speaker Button (Interactive Voice IVR Simulation) */}
+      {/* Main Bottom Navigation Bar with Rounded Top Corners & Shadow Backdrop */}
+      <nav
+        aria-label="Bottom Navigation"
+        className="w-full rounded-t-[26px] bg-white/95 dark:bg-[#0c1a33]/95 backdrop-blur-md border-t border-x border-slate-200/80 dark:border-blue-900/50 shadow-[0_-8px_25px_rgba(0,0,0,0.09),0_-2px_6px_rgba(0,0,0,0.04)] dark:shadow-[0_-12px_32px_rgba(0,0,0,0.45)] px-5 pt-3 pb-2"
+      >
+        <div className="flex items-center justify-around max-w-[360px] mx-auto">
+          {/* 1. Voice / Audio Button */}
           <button
             onClick={onToggleAudio}
-            className={`relative w-10 h-10 rounded-full flex items-center justify-center transition active:scale-95 ${
-              isAudioPlaying
-                ? 'bg-amber-100 text-amber-700 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300'
-                : 'text-[#16325B] dark:text-blue-200 hover:bg-blue-50 dark:hover:bg-blue-950/40'
-            }`}
-            title={isAudioPlaying ? 'Mute IVR Speech' : 'Play IVR Voice Announcement'}
-            aria-label="Toggle Voice Readout"
+            className="flex flex-col items-center justify-center gap-1 group py-0.5 px-3 rounded-xl transition active:scale-95 cursor-pointer"
+            title={
+              isVoiceActive && isAudioPlaying
+                ? (language === 'en' ? 'Mute Voice' : 'মিউট করুন')
+                : (language === 'en' ? 'Play Voice' : 'ভয়েস শুনুন')
+            }
+            aria-label="Toggle Voice"
           >
-            {isAudioPlaying ? (
-              <div className="flex items-center gap-0.5">
-                <span className="w-1 h-3 bg-amber-500 rounded-full animate-eq-1" />
-                <span className="w-1 h-3.5 bg-amber-500 rounded-full animate-eq-2" />
-                <span className="w-1 h-2 bg-amber-500 rounded-full animate-eq-3" />
-              </div>
-            ) : (
-              <Volume2 className="w-5 h-5 stroke-[2.2]" />
-            )}
+            <div
+              className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
+                isVoiceActive && isAudioPlaying
+                  ? 'bg-amber-100 text-amber-600 dark:bg-amber-950/70 dark:text-amber-300 shadow-xs border border-amber-300/80 dark:border-amber-700/60'
+                  : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 group-hover:bg-blue-50 group-hover:text-[#16325B] dark:group-hover:bg-blue-950/40 border border-slate-200/60 dark:border-slate-700'
+              }`}
+            >
+              {isVoiceActive && isAudioPlaying ? (
+                <div className="flex items-center gap-0.5">
+                  <span className="w-0.5 h-3.5 bg-amber-500 rounded-full animate-eq-1" />
+                  <span className="w-0.5 h-4.5 bg-amber-500 rounded-full animate-eq-2" />
+                  <span className="w-0.5 h-2.5 bg-amber-500 rounded-full animate-eq-3" />
+                </div>
+              ) : (
+                <VolumeX className="w-5 h-5 stroke-[2]" />
+              )}
+            </div>
+            <span
+              className={`text-[10px] transition-colors leading-none ${
+                isVoiceActive && isAudioPlaying
+                  ? 'text-amber-600 dark:text-amber-400 font-bold'
+                  : 'text-slate-500 dark:text-slate-400 font-medium group-hover:text-[#16325B] dark:group-hover:text-white'
+              }`}
+            >
+              {language === 'en' ? 'Voice' : 'ভয়েস'}
+            </span>
           </button>
 
-          {/* Home Button */}
+          {/* 2. Home Button (Center - Highlighted when on main-menu) */}
           <button
             onClick={onGoHome}
-            className={`w-10 h-10 rounded-full flex items-center justify-center transition active:scale-95 ${
-              currentRoute === 'main-menu'
-                ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/30'
-                : 'text-[#16325B] dark:text-blue-200 hover:bg-blue-50 dark:hover:bg-blue-950/40'
-            }`}
+            className="flex flex-col items-center justify-center gap-1 group py-0.5 px-3 rounded-xl transition active:scale-95 cursor-pointer -mt-2.5"
             title="Main Menu"
-            aria-label="Main Menu"
+            aria-label="Home"
           >
-            <Home className="w-5 h-5 stroke-[2.2]" />
+            <div
+              className={`w-12 h-12 rounded-[20px] flex items-center justify-center transition-all ${
+                isHomeActive
+                  ? 'bg-gradient-to-tr from-[#16325B] to-[#1E3A8A] text-amber-300 border-2 border-amber-400 shadow-lg scale-105'
+                  : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500 group-hover:bg-blue-50 group-hover:text-[#16325B] dark:group-hover:bg-blue-950/40 border border-slate-200/80 dark:border-slate-700 shadow-xs'
+              }`}
+            >
+              <Home className={`w-6 h-6 ${isHomeActive ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+            </div>
+            <span
+              className={`text-[10.5px] transition-colors leading-none ${
+                isHomeActive
+                  ? 'text-[#16325B] dark:text-amber-300 font-bold'
+                  : 'text-slate-500 dark:text-slate-400 font-medium group-hover:text-[#16325B] dark:group-hover:text-white'
+              }`}
+            >
+              {language === 'en' ? 'Home' : 'হোম'}
+            </span>
           </button>
 
-          {/* End Call / Disconnect Button */}
+          {/* 3. Exit Button (Right - Styled Red Exit Icon) */}
           <button
             onClick={onEndCall}
-            className="w-10 h-10 rounded-full flex items-center justify-center text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition active:scale-95"
-            title="End Session"
-            aria-label="End Session"
+            className="flex flex-col items-center justify-center gap-1 group py-0.5 px-3 rounded-xl transition active:scale-95 cursor-pointer"
+            title="Exit Session"
+            aria-label="Exit"
           >
-            <Power className="w-5 h-5 stroke-[2.2]" />
+            <div className="w-11 h-11 rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-500 dark:text-rose-400 group-hover:bg-rose-500 group-hover:text-white flex items-center justify-center transition-all border border-rose-200/80 dark:border-rose-900/50 shadow-xs">
+              <LogOut className="w-5 h-5 stroke-[2.2]" />
+            </div>
+            <span className="text-[10px] font-semibold text-rose-500 dark:text-rose-400 group-hover:text-rose-600 transition-colors leading-none">
+              {language === 'en' ? 'Exit' : 'প্রস্থান'}
+            </span>
           </button>
         </div>
 
-        {/* Footer Credit Line matching screenshots */}
-        <div className="w-full flex items-center justify-between px-3 pt-0 pb-0.5 text-[8.5px] text-slate-400 dark:text-slate-500 font-medium tracking-tight">
+        {/* Footer Credit Line centered with reduced font size */}
+        <div className="w-full flex items-center justify-center px-3 pt-2 pb-0.5 text-[8px] text-slate-400 dark:text-slate-500 font-medium tracking-tight">
           <a
             href="https://www.linkedin.com/in/ali-imranmehedi"
             target="_blank"
@@ -131,7 +145,6 @@ export const IvrBottomNav: React.FC<IvrBottomNavProps> = ({
               Imran Mehedi
             </span>
           </a>
-          <span className="text-amber-500/80 dark:text-amber-400/80 font-semibold">Green Delta Insurance</span>
         </div>
       </nav>
     </div>

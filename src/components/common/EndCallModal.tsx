@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { PhoneOff, X, Check } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { Language } from '../../types/ivr';
 
 interface EndCallModalProps {
@@ -27,34 +27,35 @@ export const EndCallModal: React.FC<EndCallModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs transition-opacity duration-200">
       <div className="w-full max-w-[380px] bg-white dark:bg-[#0c1a33] rounded-3xl shadow-2xl border border-slate-200 dark:border-blue-900/40 p-6 flex flex-col items-center text-center overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-950/70 border border-red-200 dark:border-red-900 flex items-center justify-center text-red-600 dark:text-red-400 mb-3">
-          <PhoneOff className="w-7 h-7" />
+        <div className="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-950/70 border border-rose-200 dark:border-rose-900 flex items-center justify-center text-rose-600 dark:text-rose-400 mb-3">
+          <LogOut className="w-7 h-7" />
         </div>
 
         <h3 className="text-base font-black text-slate-900 dark:text-white">
-          {language === 'en' ? 'End Smart IVR Session?' : 'স্মার্ট আইভিআর সেশন সমাপ্ত করবেন?'}
+          {language === 'en' ? 'Cancel Smart IVR Session?' : 'স্মার্ট আইভিআর সেশন সমাপ্ত করবেন?'}
         </h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-[260px]">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-[270px]">
           {language === 'en'
-            ? `Your active session duration is ${m}:${s}. Are you sure you want to exit?`
-            : `আপনার সক্রিয় কলের সময়কাল ${m}:${s}। আপনি কি কলটি কেটে হোম পেজে ফিরতে চান?`}
+            ? `Your active session duration is ${m}:${s}. Are you sure you want to cancel?`
+            : `আপনার সক্রিয় সেশনের সময়কাল ${m}:${s}। আপনি কি সেশনটি বাতিল করতে চান?`}
         </p>
 
         <div className="w-full flex items-center gap-3 mt-5">
           <button
             onClick={onClose}
-            className="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition active:scale-95"
+            className="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition active:scale-95 cursor-pointer"
           >
-            {language === 'en' ? 'Stay in IVR' : 'চালিয়ে যান'}
+            {language === 'en' ? 'Continue' : 'চালিয়ে যান'}
           </button>
           <button
             onClick={onConfirmEnd}
-            className="flex-1 h-11 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md transition active:scale-95"
+            className="flex-1 h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md transition active:scale-95 cursor-pointer"
           >
-            {language === 'en' ? 'Exit Securely' : 'কল কাটুন'}
+            {language === 'en' ? 'Cancel' : 'বাতিল'}
           </button>
         </div>
       </div>
     </div>
   );
 };
+

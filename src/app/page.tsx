@@ -23,6 +23,7 @@ import { LiveChatModal } from '../components/common/LiveChatModal';
 import { SearchModal } from '../components/common/SearchModal';
 import { ConnectionStatusModal } from '../components/common/ConnectionStatusModal';
 import { EndCallModal } from '../components/common/EndCallModal';
+import { HotlineModal } from '../components/common/HotlineModal';
 import { Language, MenuItem } from '../types/ivr';
 import { MAIN_MENU_ITEMS } from '../data/ivr-data';
 import { speakSpeech, stopSpeech, playDtmfTone } from '../lib/audio';
@@ -52,7 +53,8 @@ export default function SmartIvrApp() {
   const [callDuration, setCallDuration] = useState(194); // Start at simulated ~3 minutes
   const [isCallActive, setIsCallActive] = useState(true);
 
-  // Audio Voice State
+  // Audio Voice State - Muted by default (user can unmute on demand)
+  const [isMuted, setIsMuted] = useState(true);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
 
   // Modal States
@@ -61,6 +63,81 @@ export default function SmartIvrApp() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isEndCallOpen, setIsEndCallOpen] = useState(false);
+  const [isHotlineOpen, setIsHotlineOpen] = useState(false);
+
+  // Audio Gist Generator for each route (Concise, welcoming ~30s gist, strictly NO press 1/2 instructions)
+  const getRouteGistSpeech = (route: Route, lang: Language): string => {
+    if (route === 'main-menu') {
+      return lang === 'en'
+        ? 'Welcome to Green Delta Insurance Smart IVR. Through this visual self-service portal, you can explore our non-life insurance solutions including motor, health, travel, pet care, nibedita women protection, fire, and marine coverage. You can calculate instant premiums, submit quotation requests, find your nearest branch, access Bancassurance, review your active policies, and connect with customer care. Simply tap any option on your screen to proceed.'
+        : 'গ্রিন ডেল্টা ইন্স্যুরেন্সের স্মার্ট আইভিআরে আপনাকে স্বাগতম। এই আধুনিক ডিজিটাল সেবার মাধ্যমে আপনি খুব সহজেই অগ্নি, মোটর, নৌ, স্বাস্থ্য, ভ্রমণ, নিবেদিতা নারী সুরক্ষা ও পেট ইন্স্যুরেন্স সহ সকল সাধারণ বীমার পলিসি দেখতে পারেন, তাৎক্ষণিক কোটেশন বা প্রিমিয়াম হিসাব করতে পারেন, অথবা সরাসরি রিকোয়েস্ট ফর কোটেশন জমা দিতে পারেন। এছাড়াও রয়েছে ব্যাংকাসুরেন্স পার্টনারশিপ, নিকটস্থ শাখা লোকেশন, সক্রিয় পলিসি যাচাই ও সার্বক্ষণিক ক্লেইম সহায়তা। আপনার প্রয়োজনীয় সেবাটি বেছে নিতে স্ক্রিনে স্পর্শ করুন।';
+    } else if (route === 'product-service') {
+      return lang === 'en'
+        ? 'Green Delta Products and Services. Explore direct purchase policies such as Motor, Health, Personal Accident, Nibedita, and Travel, or submit a quotation request for Fire and Marine coverage. Tap any product to continue.'
+        : 'গ্রিন ডেল্টা ইন্স্যুরেন্সের পলিসি ও সেবাসমূহ। এখানে আপনি মোটর, স্বাস্থ্য, ব্যক্তিগত দুর্ঘটনা, নিবেদিতা ও ভ্রমণ বীমার মতো সরাসরি ডিজিটাল পারচেজ প্রোডাক্ট পাবেন, অথবা অগ্নি ও নৌ বীমার জন্য রিকোয়েস্ট ফর কোটেশন জমা দিতে পারবেন। বিস্তারিত জানতে পছন্দের পণ্যটি নির্বাচন করুন।';
+    } else if (route === 'bancassurance') {
+      return lang === 'en'
+        ? 'Green Delta Bancassurance. Access our insurance solutions directly through our partner branch networks at Eastern Bank, Mutual Trust Bank, and BRAC Bank.'
+        : 'গ্রিন ডেল্টা ব্যাংকাসুরেন্স সেবা। আমাদের অংশীদার ইস্টার্ন ব্যাংক, মিউচুয়াল ট্রাস্ট ব্যাংক এবং ব্র্যাক ব্যাংকের যেকোনো অনুমোদিত শাখা থেকে সরাসরি গ্রিন ডেল্টা সাধারণ বীমা সুবিধা গ্রহণ করতে পারবেন।';
+    } else if (route === 'branch-locations') {
+      return lang === 'en'
+        ? 'Green Delta Branch Network. We operate over 37 branches across Bangladesh. Use the GPS locator or search by division to find your nearest branch.'
+        : 'গ্রিন ডেল্টা শাখা নেটওয়ার্ক। সারাদেশে আমাদের ৩৭টিরও বেশি শাখা ও ৯টি রিজিওনাল অফিস রয়েছে। আপনার নিকটস্থ অফিস ও প্রতিনিধির তথ্য জানতে জিপিএস লোকেশন বাটন ব্যবহার করুন।';
+    } else if (route === 'campaign') {
+      return lang === 'en'
+        ? 'Green Delta Special Campaigns. Explore our Nibedita women protection packages and seasonal digital premium offers.'
+        : 'গ্রিন ডেল্টা বিশেষ ক্যাম্পেইন। নারীদের সুরক্ষা ও স্বাস্থ্যের জন্য নিবেদিতা প্যাকেজ এবং আকর্ষণীয় ডিজিটাল প্রিমিয়াম ডিসকাউন্ট অফার সম্পর্কে জানুন।';
+    } else if (route === 'my-policy') {
+      return lang === 'en'
+        ? 'My Policy Self-Service. Verify your registered mobile number with an OTP to instantly check active policies, renewal dates, and claim statuses.'
+        : 'আমার পলিসি ডিজিটাল সেলফ-সার্ভিস। আপনার নিবন্ধিত মোবাইল নম্বরে ওটিপি কোড ব্যবহার করে সক্রিয় পলিসির মেয়াদ, কভারেজ ও ক্লেইম স্ট্যাটাস তাৎক্ষণিকভাবে যাচাই করুন।';
+    } else if (route === 'quotation') {
+      return lang === 'en'
+        ? 'Instant Premium Calculator. Calculate accurate motor and health insurance premiums with real-time tax and surcharge breakdowns.'
+        : 'তাৎক্ষণিক বীমা প্রিমিয়াম ক্যালকুলেটর। মোটর ও স্বাস্থ্য বীমার প্রয়োজনীয় তথ্য প্রদান করে রিয়াল-টাইমে ভ্যাট ও ট্যাক্সসহ সঠিক প্রিমিয়াম জেনে নিন।';
+    } else if (route === 'support') {
+      return lang === 'en'
+        ? 'Green Delta Customer Care. Request an immediate callback, chat live with our support team, or dial our 24/7 hotline at 16457.'
+        : 'গ্রিন ডেল্টা কাস্টমার কেয়ার। আমাদের প্রতিনিধির কলব্যাকের জন্য অনুরোধ পাঠাতে পারেন, লাইভ চ্যাটে যুক্ত হতে পারেন, অথবা সরাসরি আমাদের ২৪/৭ হটলাইন ১৬৪৫৭ এ কল করতে পারেন।';
+    } else if (route === 'ppa') {
+      return lang === 'en'
+        ? 'Peoples Personal Accident Insurance. 100,000 Taka worldwide accidental coverage for just 69 Taka per year. Instant 10-minute digital issuance.'
+        : 'জনগণের ব্যক্তিগত দুর্ঘটনা বীমা পিপিএ। মাত্র ৬৯ টাকায় ১ লাখ টাকার সার্বক্ষণিক বিশ্বব্যাপী দুর্ঘটনা সুরক্ষা। ১০ মিনিটে ডিজিটাল সার্টিফিকেট গ্রহণ করুন।';
+    } else if (route === 'nibedita') {
+      return lang === 'en'
+        ? 'Nibedita Comprehensive Women Protection. Tailored health, trauma, and legal coverage for women starting from 54 Taka and 50 Paisa.'
+        : 'নিবেদিতা নারী সুরক্ষা বীমা। নারীদের জন্য বিশেষায়িত চিকিৎসা, ট্রমা কভারেজ ও আইনি সহায়তাসহ সর্বমোট মাত্র ৫৪ টাকা ৫০ পয়সা থেকে পলিসি শুরু।';
+    } else if (route === 'pet-insurance') {
+      return lang === 'en'
+        ? 'Green Delta Pet Care Insurance for cats and dogs. Comprehensive veterinary and accidental coverage up to 80,000 Taka.'
+        : 'গ্রিন ডেল্টা পেট কেয়ার ইন্স্যুরেন্স। আপনার প্রিয় বিড়াল ও কুকুরের দুর্ঘটনা ও অসুস্থতার চিকিৎসায় ৮০ হাজার টাকা পর্যন্ত সুরক্ষা কভারেজ।';
+    } else if (route === 'travel-insurance') {
+      return lang === 'en'
+        ? 'Green Delta Overseas Travel Insurance. 100% Embassy and Schengen compliant medical, cancellation, and baggage protection worldwide.'
+        : 'গ্রিন ডেল্টা ওভারসিজ ট্রাভেল ইন্স্যুরেন্স। আন্তর্জাতিক ভ্রমণ, ব্যবসা, বা উচ্চশিক্ষার জন্য শতভাগ দূতাবাস ও শেঙ্গেন ভিসা স্বীকৃত জরুরি স্বাস্থ্য ও লাগেজ সুরক্ষা।';
+    } else if (route === 'request-quotation') {
+      return lang === 'en'
+        ? 'Green Delta Request for Quotation. Submit your risk particulars for fire, marine, or specialized corporate policies to receive a customized quote.'
+        : 'গ্রিন ডেল্টা রিকোয়েস্ট ফর কোটেশন। অগ্নি, নৌ, বা যেকোনো বাণিজ্যিক ঝুঁকি বীমার বিবরণ পূরণ করুন, আমাদের বিশেষজ্ঞ প্রতিনিধি দ্রুত যোগাযোগ করবেন।';
+    }
+    return lang === 'en'
+      ? 'Green Delta Smart IVR visual self-service.'
+      : 'গ্রিন ডেল্টা স্মার্ট আইভিআর ডিজিটাল সেবা।';
+  };
+
+  // Helper to speak gist if not muted (force=true bypasses isMuted check)
+  const playVoiceGist = (route: Route, lang: Language, force = false) => {
+    if (isMuted && !force) return;
+    stopSpeech();
+    const text = getRouteGistSpeech(route, lang);
+    setIsAudioPlaying(true);
+    speakSpeech(
+      text,
+      lang,
+      () => setIsAudioPlaying(true),
+      () => setIsAudioPlaying(false)
+    );
+  };
 
   // Call timer interval
   useEffect(() => {
@@ -82,26 +159,45 @@ export default function SmartIvrApp() {
     }
   }, [isDarkMode]);
 
-  // Navigate to new route with history tracking
+  // Auto-play voice on initial mount if starting on an active route
+  useEffect(() => {
+    if (currentRoute !== 'landing' && !isMuted) {
+      const timer = setTimeout(() => {
+        playVoiceGist(currentRoute, language);
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Navigate to new route with history tracking and auto-voice
   const navigateTo = (route: Route) => {
     if (route === currentRoute) return;
     setRouteHistory((prev) => [...prev, currentRoute]);
     setCurrentRoute(route);
-    stopSpeech();
-    setIsAudioPlaying(false);
+    if (!isMuted) {
+      playVoiceGist(route, language);
+    } else {
+      stopSpeech();
+      setIsAudioPlaying(false);
+    }
   };
 
   // Back button handler
   const handleGoBack = () => {
+    let nextRoute: Route = 'main-menu';
     if (routeHistory.length > 0) {
-      const prev = routeHistory[routeHistory.length - 1];
+      nextRoute = routeHistory[routeHistory.length - 1];
       setRouteHistory((h) => h.slice(0, -1));
-      setCurrentRoute(prev);
     } else {
-      setCurrentRoute('main-menu');
+      nextRoute = 'main-menu';
     }
-    stopSpeech();
-    setIsAudioPlaying(false);
+    setCurrentRoute(nextRoute);
+    if (!isMuted) {
+      playVoiceGist(nextRoute, language);
+    } else {
+      stopSpeech();
+      setIsAudioPlaying(false);
+    }
   };
 
   // Home button handler
@@ -109,16 +205,25 @@ export default function SmartIvrApp() {
     if (currentRoute !== 'main-menu') {
       setRouteHistory([]);
       setCurrentRoute('main-menu');
-      stopSpeech();
-      setIsAudioPlaying(false);
+      if (!isMuted) {
+        playVoiceGist('main-menu', language);
+      } else {
+        stopSpeech();
+        setIsAudioPlaying(false);
+      }
     }
   };
 
   // Language toggle
   const handleToggleLanguage = () => {
-    setLanguage((prev) => (prev === 'en' ? 'bn' : 'en'));
-    stopSpeech();
-    setIsAudioPlaying(false);
+    const nextLang: Language = language === 'en' ? 'bn' : 'en';
+    setLanguage(nextLang);
+    if (!isMuted && currentRoute !== 'landing') {
+      playVoiceGist(currentRoute, nextLang);
+    } else {
+      stopSpeech();
+      setIsAudioPlaying(false);
+    }
   };
 
   // Dialpad option routing
@@ -137,94 +242,18 @@ export default function SmartIvrApp() {
     }
   };
 
-  // Audio Speech Narrator for current view
+  // Voice Narrator Toggle: Play / Mute
   const handleToggleAudio = () => {
     if (isAudioPlaying) {
+      // Currently active -> user wants to mute/stop
+      setIsMuted(true);
       stopSpeech();
       setIsAudioPlaying(false);
-      return;
-    }
-
-    let speechText = '';
-    if (currentRoute === 'main-menu') {
-      speechText =
-        language === 'en'
-          ? 'Welcome to Green Delta Smart IVR. For Product and Service, press 1. For Bancassurance, press 2. For Branch Location, press 3. For New Campaign, press 4. For My Policy, press 5. For Quotation Request, press 6. For Customer Support and Callback, press 7. You can also press 0 to reach our 24/7 hotline 16457.'
-          : 'গ্রিন ডেল্টা ইন্স্যুরেন্স স্মার্ট আইভিআরে স্বাগতম। সাধারণ বীমা প্রোডাক্ট ও সেবাসমূহের জন্য ১ চাপুন। ব্যাংকাসুরেন্সের জন্য ২। শাখা লোকেশনের জন্য ৩। নতুন ক্যাম্পেইনের জন্য ৪। পলিসি তথ্যের জন্য ৫। তাৎক্ষণিক প্রিমিয়াম কোটেশনের জন্য ৬। গ্রাহক সহায়তার জন্য ৭ চাপুন। সরাসরি প্রতিনিধির জন্য হটলাইন ১৬৪৫৭ এ যোগাযোগ করুন।';
-    } else if (currentRoute === 'product-service') {
-      speechText =
-        language === 'en'
-          ? 'Green Delta Products and Services. We provide Fire, Motor, Marine, Health, Burglary, Nibedita, Travel, and Agricultural Insurance.'
-          : 'গ্রিন ডেল্টা বীমা সেবাসমূহ। অগ্নি, মোটর, নৌ, স্বাস্থ্য, চুরি ও ডাকাতি, নিবেদিতা এবং ভ্রমণ বীমার তথ্য দেখতে সেবাটি নির্বাচন করুন।';
-    } else if (currentRoute === 'bancassurance') {
-      speechText =
-        language === 'en'
-          ? 'Bancassurance Partnerships. Green Delta policies are available directly through Eastern Bank, Mutual Trust Bank, and BRAC Bank branches.'
-          : 'ব্যাংকাসুরেন্স সেবা। ইস্টার্ন ব্যাংক, মিউচুয়াল ট্রাস্ট ব্যাংক এবং ব্র্যাক ব্যাংকের যেকোনো শাখা থেকে সরাসরি গ্রিন ডেল্টা বীমা গ্রহণ করতে পারবেন।';
-    } else if (currentRoute === 'branch-locations') {
-      speechText =
-        language === 'en'
-          ? 'Branch Locations. Green Delta has 37 branches across 9 regions in Bangladesh. Tap find my nearest branch to locate the closest branch using GPS.'
-          : 'গ্রিন ডেল্টা শাখা নেটওয়ার্ক। সারাদেশে ৩৭টি শাখা ও ৯টি রিজিওনাল অফিস। নিকটস্থ শাখা খুঁজতে জিপিএস লোকেশন বাটন ব্যবহার করুন।';
-    } else if (currentRoute === 'campaign') {
-      speechText =
-        language === 'en'
-          ? 'Nibedita Campaign 2026. Special protection package for women including cancer cover, trauma assistance, and 24/7 legal aid.'
-          : 'নিবেদিতা ক্যাম্পেইন ২০২৬। নারীদের ক্যান্সার ও ট্রমা কভারেজ এবং ২৪/৭ আইনি সহায়তাসহ বিশেষ প্রিমিয়াম অফার।';
-    } else if (currentRoute === 'my-policy') {
-      speechText =
-        language === 'en'
-          ? 'My Policy self-service. Please verify your registered mobile number with OTP to view active policies and claim status.'
-          : 'আমার পলিসি সেবা। আপনার পলিসির বিবরণ ও ক্লেইম স্ট্যাটাস দেখতে ওটিপি দিয়ে ভেরিফাই করুন।';
-    } else if (currentRoute === 'quotation') {
-      speechText =
-        language === 'en'
-          ? 'Instant Insurance Quotation Calculator. Calculate Motor and Health insurance premiums with real-time tax and surcharge breakdown.'
-          : 'তাৎক্ষণিক বীমা প্রিমিয়াম ক্যালকুলেটর। মোটর ও স্বাস্থ্য বীমার মান বসিয়ে রিয়েলটাইমে প্রিমিয়াম হিসাব করুন।';
-    } else if (currentRoute === 'support') {
-      speechText =
-        language === 'en'
-          ? 'Green Delta Customer Support. Request an agent callback or call our 24/7 hotline directly at 16457.'
-          : 'গ্রিন ডেল্টা গ্রাহক সহায়তা। কলব্যাকের অনুরোধ জানান অথবা সরাসরি ১৬৪৫৭ হটলাইনে কল করুন।';
-    } else if (currentRoute === 'ppa') {
-      speechText =
-        language === 'en'
-          ? 'Peoples Personal Accident PPA. BDT 100,000 maximum accidental cover for only BDT 69 per year. Worldwide protection for Bangladeshi citizens.'
-          : 'জনগণের ব্যক্তিগত দুর্ঘটনা বীমা পিপিএ। মাত্র ৬৯ টাকায় ১ লাখ টাকার সার্বক্ষণিক বিশ্বব্যাপী দুর্ঘটনা সুরক্ষা।';
-    } else if (currentRoute === 'nibedita') {
-      speechText =
-        language === 'en'
-          ? 'Nibedita Comprehensive Women Protection Insurance. Choose your coverage tier from Nibedita Eco, Plus, or Regular starting from only BDT 54.50 including Stamp and VAT.'
-          : 'নিবেদিতা নারী সুরক্ষা বীমা। নিবেদিতা ইকো, প্লাস অথবা রেগুলার প্ল্যান নির্বাচন করুন। স্ট্যাম্প ফি ও ভ্যাটসহ সর্বমোট মাত্র ৫৪ টাকা ৫০ পয়সা থেকে শুরু।';
-    } else if (currentRoute === 'pet-insurance') {
-      speechText =
-        language === 'en'
-          ? 'Green Delta Pet Care Insurance for cats and dogs. Choose from Plan A, Plan B Best Value, or Plan C with coverage up to BDT 80,000 and 10-minute instant digital certificate e-delivery.'
-          : 'বিড়াল ও কুকুরের জন্য গ্রিন ডেল্টা পেট কেয়ার বীমা। প্ল্যান এ, বেস্ট ভ্যালু প্ল্যান বি অথবা প্ল্যান সি নির্বাচন করুন। ১০ মিনিটে ডিজিটাল সার্টিফিকেট সরবরাহ।';
-    } else if (currentRoute === 'travel-insurance') {
-      speechText =
-        language === 'en'
-          ? 'Green Delta Overseas Travel Insurance. Choose your coverage type from Business & Holidays, Corporate Travel, or Employment & Studies. 100% Embassy and Schengen compliant.'
-          : 'গ্রিন ডেল্টা ওভারসিজ ট্রাভেল ইন্স্যুরেন্স। ব্যবসা ও অবকাশযাপন, করপোরেট অথবা উচ্চশিক্ষা ক্যাটাগরি বেছে নিন। শতভাগ দূতাবাস ও শেঙ্গেন ভিসা উপযোগী।';
-    } else if (currentRoute === 'request-quotation') {
-      speechText =
-        language === 'en'
-          ? 'Green Delta Request for Quotation. Fill up your risk particulars for Fire, Marine, Health, or specialty non-life policies.'
-          : 'গ্রিন ডেল্টা কোটেশন রিকোয়েস্ট। অগ্নি, নৌ, স্বাস্থ্য বা বিশেষ বাণিজ্যিক বীমার বিস্তারিত তথ্য প্রদান করুন।';
     } else {
-      speechText =
-        language === 'en'
-          ? 'You are viewing Green Delta Smart IVR visual self-service.'
-          : 'আপনি গ্রিন ডেল্টা স্মার্ট আইভিআর ডিজিটাল সেবা দেখছেন।';
+      // Currently silent or muted -> user clicked voice to hear audio!
+      setIsMuted(false);
+      playVoiceGist(currentRoute, language, true);
     }
-
-    setIsAudioPlaying(true);
-    speakSpeech(
-      speechText,
-      language,
-      () => setIsAudioPlaying(true),
-      () => setIsAudioPlaying(false)
-    );
   };
 
   const handleEndCall = () => {
@@ -235,6 +264,7 @@ export default function SmartIvrApp() {
     setIsEndCallOpen(false);
     setIsCallActive(false);
     stopSpeech();
+    setIsAudioPlaying(false);
     setCurrentRoute('landing');
   };
 
@@ -243,6 +273,9 @@ export default function SmartIvrApp() {
     setIsCallActive(true);
     setCallDuration(0);
     setCurrentRoute('main-menu');
+    setIsMuted(true);
+    stopSpeech();
+    setIsAudioPlaying(false);
   };
 
   return (
@@ -261,6 +294,7 @@ export default function SmartIvrApp() {
           onOpenSearch={() => setIsSearchOpen(true)}
           onOpenStatus={() => setIsStatusOpen(true)}
           onOpenDialpad={() => setIsDialpadOpen(true)}
+          onOpenHotlineModal={() => setIsHotlineOpen(true)}
           onGoHome={handleGoHome}
           onGoBack={handleGoBack}
           canGoBack={routeHistory.length > 0 || currentRoute !== 'main-menu'}
@@ -410,11 +444,10 @@ export default function SmartIvrApp() {
       {/* Bottom Navigation (shown on all active IVR screens except landing) */}
       {currentRoute !== 'landing' && (
         <IvrBottomNav
-          canGoBack={routeHistory.length > 0 || currentRoute !== 'main-menu'}
-          onGoBack={handleGoBack}
+          language={language}
           onGoHome={handleGoHome}
-          onOpenDialpad={() => setIsDialpadOpen(true)}
           isAudioPlaying={isAudioPlaying}
+          isMuted={isMuted}
           onToggleAudio={handleToggleAudio}
           onEndCall={handleEndCall}
           onOpenLiveChat={() => setIsLiveChatOpen(true)}
@@ -428,7 +461,10 @@ export default function SmartIvrApp() {
         onClose={() => setIsDialpadOpen(false)}
         language={language}
         onSelectOptionByCode={handleSelectOptionByCode}
-        onReplayPrompt={handleToggleAudio}
+        onReplayPrompt={() => {
+          setIsMuted(false);
+          playVoiceGist(currentRoute, language);
+        }}
       />
 
       {/* Live Agent / AI Chat Drawer */}
@@ -460,6 +496,14 @@ export default function SmartIvrApp() {
         onConfirmEnd={handleConfirmEnd}
         language={language}
         callDurationSeconds={callDuration}
+      />
+
+      {/* Direct Hotline 16457 Call Modal */}
+      <HotlineModal
+        isOpen={isHotlineOpen}
+        onClose={() => setIsHotlineOpen(false)}
+        language={language}
+        onOpenSupport={() => navigateTo('support')}
       />
     </MobileFrame>
   );

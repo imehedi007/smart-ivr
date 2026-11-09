@@ -89,7 +89,69 @@ export function playSuccessChime(): void {
   }
 }
 
+let activeAudio: HTMLAudioElement | null = null;
 let activeUtterance: SpeechSynthesisUtterance | null = null;
+
+function speakWithBrowserSynthesis(
+  text: string,
+  lang: 'en' | 'bn',
+  onStart?: () => void,
+  onEnd?: () => void
+): void {
+  if (typeof window === 'undefined' || !window.speechSynthesis) {
+    if (onEnd) onEnd();
+    return;
+  }
+
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    activeUtterance = utterance;
+
+    utterance.lang = lang === 'bn' ? 'bn-BD' : 'en-US';
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    const voices = window.speechSynthesis.getVoices();
+    if (voices && voices.length > 0) {
+      if (lang === 'bn') {
+        const bnVoice = voices.find(
+          (v) =>
+            v.lang.startsWith('bn') ||
+            v.name.toLowerCase().includes('bengali') ||
+            v.name.toLowerCase().includes('bangla')
+        );
+        if (bnVoice) utterance.voice = bnVoice;
+      } else {
+        const enVoice = voices.find(
+          (v) =>
+            v.lang.startsWith('en') &&
+            (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha'))
+        );
+        if (enVoice) utterance.voice = enVoice;
+      }
+    }
+
+    utterance.onstart = () => {
+      if (onStart) onStart();
+    };
+
+    utterance.onend = () => {
+      activeUtterance = null;
+      if (onEnd) onEnd();
+    };
+
+    utterance.onerror = () => {
+      activeUtterance = null;
+      if (onEnd) onEnd();
+    };
+
+    window.speechSynthesis.speak(utterance);
+  } catch (err) {
+    console.warn('Speech synthesis error:', err);
+    if (onEnd) onEnd();
+  }
+}
 
 export function speakSpeech(
   text: string,
@@ -97,37 +159,71 @@ export function speakSpeech(
   onStart?: () => void,
   onEnd?: () => void
 ): void {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+  stopSpeech();
 
-  window.speechSynthesis.cancel();
+  if (typeof window !== 'undefined') {
+    try {
+      const url = `/api/tts?lang=${encodeURIComponent(lang)}&text=${encodeURIComponent(text)}`;
+      const audio = new Audio(url);
+      activeAudio = audio;
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  activeUtterance = utterance;
+      let started = false;
 
-  utterance.lang = lang === 'bn' ? 'bn-BD' : 'en-US';
-  utterance.rate = 1.0;
-  utterance.pitch = 1.0;
+      audio.onplay = () => {
+        started = true;
+        if (onStart) onStart();
+      };
 
-  utterance.onstart = () => {
-    if (onStart) onStart();
-  };
+      audio.onended = () => {
+        activeAudio = null;
+        if (onEnd) onEnd();
+      };
 
-  utterance.onend = () => {
-    activeUtterance = null;
-    if (onEnd) onEnd();
-  };
+      audio.onerror = (e) => {
+        console.warn('TTS streaming API error, attempting browser speech synthesis fallback:', e);
+        activeAudio = null;
+        speakWithBrowserSynthesis(text, lang, onStart, onEnd);
+      };
 
-  utterance.onerror = () => {
-    activeUtterance = null;
-    if (onEnd) onEnd();
-  };
+      const promise = audio.play();
+      if (promise !== undefined) {
+        promise.catch((err) => {
+          console.warn('Audio play prevented or aborted:', err);
+          if (!started) {
+            activeAudio = null;
+            speakWithBrowserSynthesis(text, lang, onStart, onEnd);
+          }
+        });
+      }
+      return;
+    } catch (e) {
+      console.warn('Could not initialize Audio element, falling back:', e);
+    }
+  }
 
-  window.speechSynthesis.speak(utterance);
+  speakWithBrowserSynthesis(text, lang, onStart, onEnd);
 }
 
 export function stopSpeech(): void {
+  if (activeAudio) {
+    try {
+      activeAudio.pause();
+      activeAudio.currentTime = 0;
+      activeAudio.removeAttribute('src');
+      activeAudio.load();
+    } catch {
+      // Ignore
+    }
+    activeAudio = null;
+  }
+
   if (typeof window !== 'undefined' && window.speechSynthesis) {
-    window.speechSynthesis.cancel();
+    try {
+      window.speechSynthesis.cancel();
+    } catch {
+      // Ignore
+    }
     activeUtterance = null;
   }
 }
+
