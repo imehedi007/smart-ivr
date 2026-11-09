@@ -90,7 +90,17 @@ export const LandingView: React.FC<LandingViewProps> = ({
           <PhoneCall className="w-3.5 h-3.5 text-amber-500" />
           <span>Hotline: <strong className="text-[#16325B] dark:text-amber-300 font-mono">16457</strong></span>
         </div>
-        <div>Visual IVR (VIVR) • Green Delta Insurance Company</div>
+        <div className="flex items-center justify-center gap-1.5 text-[9.5px]">
+          <span>Visual IVR (VIVR) • Green Delta •</span>
+          <a
+            href="https://www.linkedin.com/in/ali-imranmehedi"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-amber-500 dark:hover:text-amber-400 font-medium underline decoration-slate-300 dark:decoration-slate-700 underline-offset-2 transition-colors"
+          >
+            Concept by Imran Mehedi
+          </a>
+        </div>
       </footer>
     </div>
   );

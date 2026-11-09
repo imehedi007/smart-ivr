@@ -118,9 +118,20 @@ export const IvrBottomNav: React.FC<IvrBottomNavProps> = ({
         </div>
 
         {/* Footer Credit Line matching screenshots */}
-        <div className="w-full flex items-center justify-between px-3 pt-0 pb-0.5 text-[9px] text-slate-400 dark:text-slate-500 font-medium">
-          <span>Visual IVR (VIVR)</span>
-          <span className="text-amber-500/80 font-semibold">Green Delta Insurance</span>
+        <div className="w-full flex items-center justify-between px-3 pt-0 pb-0.5 text-[8.5px] text-slate-400 dark:text-slate-500 font-medium tracking-tight">
+          <a
+            href="https://www.linkedin.com/in/ali-imranmehedi"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-amber-500 dark:hover:text-amber-400 transition-colors flex items-center gap-1 group"
+            title="Smart IVR Concept by Imran Mehedi"
+          >
+            <span>Smart IVR Concept by</span>
+            <span className="font-semibold text-slate-500 dark:text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 underline decoration-slate-300 dark:decoration-slate-700 group-hover:decoration-amber-500 underline-offset-2">
+              Imran Mehedi
+            </span>
+          </a>
+          <span className="text-amber-500/80 dark:text-amber-400/80 font-semibold">Green Delta Insurance</span>
         </div>
       </nav>
     </div>
