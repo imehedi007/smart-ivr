@@ -541,5 +541,6 @@ export const REGIONS = [
   'Barishal (2 branches)',
   'Bogura (2 branches)',
   'Rangpur (3 branches)',
-  'Mymensingh (1 branch)'
+  'Mymensingh (1 branch)',
+  'Dinajpur (1 branch)'
 ];
